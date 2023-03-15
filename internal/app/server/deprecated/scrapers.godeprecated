@@ -1,0 +1,86 @@
+package main
+
+import (
+	"crypto/sha1"
+	"encoding/hex"
+	"fmt"
+	"github.com/gocolly/colly"
+	"log"
+	"net/http"
+)
+
+func main() {
+	//fmt.Println(SHA1("888112d2-7aba-4702-9a0b-3993bc12dab2-" + "060911"))
+	cookie := login()
+	cookieString := ""
+	for _, i := range cookie {
+		cookieString += i.Name + ":" + i.Value + ";"
+	}
+
+	c := colly.NewCollector()
+
+	c.OnRequest(func(r *colly.Request) {
+		r.Headers.Set("cookie", cookieString)
+	})
+
+	c.OnHTML("html", func(e *colly.HTMLElement) {
+		e.Request.Headers.Set("Cookie", cookieString)
+		fmt.Println(e.Text)
+	})
+
+	err := c.Visit("http://jw.gzgs.edu.cn/eams/courseTableForStd!courseTable.action")
+	if err != nil {
+		return
+	}
+}
+
+func login() []*http.Cookie {
+	c := colly.NewCollector()
+
+	cookies := c.Cookies("http://jw.gzgs.edu.cn")
+	cookieString := ""
+	for _, i := range cookies {
+		cookieString += i.Name + ":" + i.Value + ";"
+	}
+
+	c.OnResponse(func(r *colly.Response) {
+		log.Println("response received", r.StatusCode)
+		if r.StatusCode != 200 {
+			log.Fatalf("status code error: %d", r.StatusCode)
+			return
+		}
+	})
+
+	scripts := make([]string, 0)
+	c.OnHTML("script", func(h *colly.HTMLElement) {
+		h.Request.Headers.Set("Cookie", cookieString)
+		scripts = append(scripts, h.Text)
+	})
+
+	//err := c.Visit("http://jw.gzgs.edu.cn/eams/login.action")
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+
+	err := c.Post(
+		"http://jw.gzgs.edu.cn/eams/login.action",
+		map[string]string{
+			"username": "202110610352",
+			"password": SHA1(scripts[5][274:311] + "060911"),
+		},
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(scripts[5][274:311])
+	fmt.Println(SHA1(scripts[5][274:311] + "060911"))
+
+	return cookies
+}
+
+func SHA1(s string) string {
+	o := sha1.New()
+	o.Write([]byte(s))
+	return hex.EncodeToString(o.Sum(nil))
+}
