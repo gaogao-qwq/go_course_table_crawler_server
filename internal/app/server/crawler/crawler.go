@@ -28,7 +28,7 @@ type CourseInfoRaw struct {
 	title   string
 }
 
-func initScrawl() context.Context {
+func initCrawler() context.Context {
 	ctx, _ := chromedp.NewExecAllocator(
 		context.Background(),
 		append(
@@ -99,11 +99,24 @@ func getSemesterList(ctx context.Context) ([]Semester, error) {
 	return semesterList, nil
 }
 
-func Scrawl(url string, account string, password string) {
-	ctx := initScrawl()
+func selectSemester(ctx context.Context, semesterId string) error {
+	err := chromedp.Run(ctx, chromedp.Tasks{
+		chromedp.SetValue("#semesterCalendar_target", semesterId, chromedp.ByID),
+		chromedp.Click("#courseTableForm > div:nth-child(2) > input[type=submit]:nth-child(9)", chromedp.ByQuery),
+		chromedp.Sleep(time.Second),
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func Crawler(url string, account string, password string) {
+	ctx := initCrawler()
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 	ctx, _ = chromedp.NewContext(ctx)
+
 	err := loginTasks(ctx)
 	if err != nil {
 		panic(err)
@@ -114,11 +127,7 @@ func Scrawl(url string, account string, password string) {
 		panic(err)
 	}
 
-	err = chromedp.Run(ctx, chromedp.Tasks{
-		chromedp.SetValue("#semesterCalendar_target", semesterList[6].semesterId1, chromedp.ByID),
-		chromedp.Click("#courseTableForm > div:nth-child(2) > input[type=submit]:nth-child(9)", chromedp.ByQuery),
-		chromedp.Sleep(time.Second),
-	})
+	err = selectSemester(ctx, semesterList[6].semesterId1)
 	if err != nil {
 		panic(err)
 	}
@@ -208,5 +217,5 @@ func Scrawl(url string, account string, password string) {
 }
 
 func main() {
-	Scrawl(url, account, password)
+	Crawler(url, account, password)
 }
