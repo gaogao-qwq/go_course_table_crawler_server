@@ -22,7 +22,7 @@ type Semester struct {
 	semesterId2 string
 }
 
-type CourseInfoRaw struct {
+type RawCourseInfo struct {
 	id      string
 	rowspan int
 	title   string
@@ -40,8 +40,8 @@ func initCrawler() context.Context {
 	return ctx
 }
 
-func loginTasks(ctx context.Context) error {
-	err := chromedp.Run(ctx, chromedp.Tasks{
+func loginTasks(ctx *context.Context) error {
+	err := chromedp.Run(*ctx, chromedp.Tasks{
 		chromedp.Navigate(url),
 		chromedp.WaitVisible("body > div.foot"),
 		chromedp.SendKeys("#username", account, chromedp.ByID),
@@ -58,9 +58,9 @@ func loginTasks(ctx context.Context) error {
 	return nil
 }
 
-func getSemesterList(ctx context.Context) ([]Semester, error) {
+func getSemesterList(ctx *context.Context) ([]Semester, error) {
 	var nodes []*cdp.Node
-	err := chromedp.Run(ctx, chromedp.Tasks{
+	err := chromedp.Run(*ctx, chromedp.Tasks{
 		chromedp.Click(".calendar-text-state-default", chromedp.ByQuery),
 		chromedp.Nodes(".calendar-bar-td-blankBorder", &nodes, chromedp.ByQueryAll),
 	})
@@ -84,7 +84,7 @@ func getSemesterList(ctx context.Context) ([]Semester, error) {
 	for i, semester := range semesterList {
 		var semesterIdNode1 []*cdp.Node
 		var semesterIdNode2 []*cdp.Node
-		err = chromedp.Run(ctx, chromedp.Tasks{
+		err = chromedp.Run(*ctx, chromedp.Tasks{
 			chromedp.Click(".calendar-bar-td-blankBorder[index=\""+semester.index+"\"]", chromedp.ByQuery),
 			chromedp.Nodes("#semesterCalendar_termTb > tbody > tr:nth-child(1) > td", &semesterIdNode1, chromedp.ByQuery),
 			chromedp.Nodes("#semesterCalendar_termTb > tbody > tr:nth-child(2) > td", &semesterIdNode2, chromedp.ByQuery),
@@ -99,8 +99,8 @@ func getSemesterList(ctx context.Context) ([]Semester, error) {
 	return semesterList, nil
 }
 
-func selectSemester(ctx context.Context, semesterId string) error {
-	err := chromedp.Run(ctx, chromedp.Tasks{
+func selectSemester(ctx *context.Context, semesterId string) error {
+	err := chromedp.Run(*ctx, chromedp.Tasks{
 		chromedp.SetValue("#semesterCalendar_target", semesterId, chromedp.ByID),
 		chromedp.Click("#courseTableForm > div:nth-child(2) > input[type=submit]:nth-child(9)", chromedp.ByQuery),
 		chromedp.Sleep(time.Second),
@@ -111,109 +111,103 @@ func selectSemester(ctx context.Context, semesterId string) error {
 	return nil
 }
 
-func Crawler(url string, account string, password string) {
-	ctx := initCrawler()
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
-	defer cancel()
-	ctx, _ = chromedp.NewContext(ctx)
-
-	err := loginTasks(ctx)
+func setWeekNum(ctx *context.Context, weekNum int) error {
+	err := chromedp.Run(*ctx, chromedp.Tasks{
+		chromedp.SetValue("#startWeek", strconv.Itoa(weekNum), chromedp.ByID),
+		chromedp.Sleep(time.Second),
+	})
 	if err != nil {
-		panic(err)
+		return err
 	}
+	return nil
+}
 
-	semesterList, err := getSemesterList(ctx)
-	if err != nil {
-		panic(err)
-	}
+func getRawCourseInfo(ctx *context.Context) ([]RawCourseInfo, error) {
+	var (
+		tableBodyNode     []*cdp.Node
+		placeholderNode   []*cdp.Node
+		rawCourseInfoList []RawCourseInfo
+	)
 
-	err = selectSemester(ctx, semesterList[6].semesterId1)
-	if err != nil {
-		panic(err)
-	}
+	for weekNum := 1; weekNum <= 20; weekNum += 1 {
+		err := setWeekNum(ctx, weekNum)
+		if err != nil {
+			return nil, err
+		}
+		err = chromedp.Run(*ctx, chromedp.Tasks{
+			chromedp.Nodes(
+				"#manualArrangeCourseTable > tbody > tr:nth-child(1) > td:nth-child(1)",
+				&placeholderNode,
+				chromedp.ByQuery,
+			),
+			chromedp.Nodes("#manualArrangeCourseTable > tbody", &tableBodyNode, chromedp.ByQuery),
+		})
+		if err != nil {
+			return nil, err
+		}
 
-	var courseInfoRawList []CourseInfoRaw
-	err = chromedp.Run(ctx, chromedp.Tasks{
-		chromedp.ActionFunc(func(ctx context.Context) error {
-			var (
-				tableBodyNode   []*cdp.Node
-				placeholderNode []*cdp.Node
-			)
-			for i := 1; i <= 20; i += 1 {
-				err = chromedp.Run(ctx, chromedp.Tasks{
-					chromedp.SetValue("#startWeek", strconv.Itoa(i), chromedp.ByID),
-					chromedp.Sleep(time.Second),
+		for nthTR := int64(1); nthTR <= tableBodyNode[0].ChildNodeCount; nthTR += 1 {
+			for nthTD := int64(1); nthTD <= tableBodyNode[0].Children[nthTR-1].ChildNodeCount; nthTD += 1 {
+				err := chromedp.Run(*ctx, chromedp.Tasks{
 					chromedp.Nodes(
-						"#manualArrangeCourseTable > tbody > tr:nth-child(1) > td:nth-child(1)",
+						"#manualArrangeCourseTable > tbody > tr:nth-child("+strconv.Itoa(int(nthTR))+") > td:nth-child("+strconv.Itoa(int(nthTD))+")",
 						&placeholderNode,
 						chromedp.ByQuery,
 					),
-					chromedp.Nodes("#manualArrangeCourseTable > tbody", &tableBodyNode, chromedp.ByQuery),
-					chromedp.ActionFunc(func(ctx context.Context) error {
-						for nthTR := int64(1); nthTR <= tableBodyNode[0].ChildNodeCount; nthTR += 1 {
-							for nthTD := int64(1); nthTD <= tableBodyNode[0].Children[nthTR-1].ChildNodeCount; nthTD += 1 {
-								chromedp.Nodes(
-									"#manualArrangeCourseTable > tbody > tr:nth-child("+strconv.Itoa(int(nthTR))+") > td:nth-child("+strconv.Itoa(int(nthTD))+")",
-									&placeholderNode,
-									chromedp.ByQuery,
-								)
-								title, isExist := placeholderNode[0].Attribute("title")
-								if !isExist {
-									continue
-								}
-								id := placeholderNode[0].AttributeValue("id")
-								rowspan, err := strconv.Atoi(placeholderNode[0].AttributeValue("rowspan"))
-								if err != nil {
-									return err
-								}
-								courseInfoRawList = append(courseInfoRawList, CourseInfoRaw{
-									id:      id,
-									rowspan: rowspan,
-									title:   title,
-								})
-							}
-						}
-						return nil
-					}),
-					chromedp.Nodes("#manualArrangeCourseTable > tbody", &tableBodyNode, chromedp.ByQuery),
 				})
 				if err != nil {
-					return err
+					return nil, err
 				}
 
-				//if tableBodyNode[0].Children == nil {
-				//	break
-				//}
-				//for j := int64(0); j < tableBodyNode[0].ChildNodeCount; j += 1 {
-				//	if tableBodyNode[0].Children[j].Children == nil {
-				//		continue
-				//	}
-				//	for k := int64(0); k < tableBodyNode[0].Children[j].ChildNodeCount; k += 1 {
-				//		if tableBodyNode[0].Children[j].Children[k].Attributes == nil {
-				//			continue
-				//		}
-				//		title, isExist := tableBodyNode[0].Children[j].Children[k].Attribute("title")
-				//		if !isExist {
-				//			continue
-				//		}
-				//		id := tableBodyNode[0].Children[j].Children[k].AttributeValue("id")
-				//		rowspan, err2 := strconv.Atoi(tableBodyNode[0].Children[j].Children[k].AttributeValue("rowspan"))
-				//		if err2 != nil {
-				//			return err2
-				//		}
-				//		courseInfoRawList = append(courseInfoRawList, CourseInfoRaw{
-				//			id:      id,
-				//			rowspan: rowspan,
-				//			title:   title,
-				//		})
-				//	}
-				//}
-			}
-			return nil
-		}),
-	})
+				title, isExist := placeholderNode[0].Attribute("title")
+				if !isExist {
+					continue
+				}
+				id := placeholderNode[0].AttributeValue("id")
+				rowspan, err := strconv.Atoi(placeholderNode[0].AttributeValue("rowspan"))
+				if err != nil {
+					return nil, err
+				}
 
-	fmt.Println("")
+				rawCourseInfoList = append(rawCourseInfoList, RawCourseInfo{
+					id:      id,
+					rowspan: rowspan,
+					title:   title,
+				})
+			}
+		}
+	}
+
+	return rawCourseInfoList, nil
+}
+
+func Crawler(url string, account string, password string) {
+	ctx := initCrawler()
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	defer cancel()
+	ctx, _ = chromedp.NewContext(ctx)
+
+	err := loginTasks(&ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	semesterList, err := getSemesterList(&ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	err = selectSemester(&ctx, semesterList[6].semesterId1)
+	if err != nil {
+		panic(err)
+	}
+
+	courseInfoRawList, err := getRawCourseInfo(&ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(courseInfoRawList)
 }
 
 func main() {
