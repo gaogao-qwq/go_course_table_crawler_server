@@ -1,19 +1,24 @@
-package main
+package crawler
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/chromedp"
 	"strconv"
 	"time"
 )
 
-var (
-	url      = "http://jw.gzgs.edu.cn/eams/login.action"
-	account  = "202110610352"
-	password = "060911"
-)
+type CourseInfo struct {
+	IsEmpty       bool   `json:"isEmpty"`
+	CourseId      string `json:"courseId"`
+	CourseName    string `json:"courseName"`
+	LocationName  string `json:"locationName"`
+	SectionBegin  int    `json:"sectionBegin"`
+	SectionLength int    `json:"sectionLength"`
+	WeekNum       int    `json:"weekNum"`
+	DateNum       int    `json:"dateNum"`
+}
 
 type Semester struct {
 	value       string
@@ -34,13 +39,14 @@ func initCrawler() context.Context {
 		append(
 			chromedp.DefaultExecAllocatorOptions[:],
 			chromedp.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36 encors/0.0.6"),
-			chromedp.Flag("headless", false),
+			chromedp.Flag("headless", true),
 		)...,
 	)
 	return ctx
 }
 
-func loginTasks(ctx *context.Context) error {
+func loginTasks(ctx *context.Context, url string, account string, password string) error {
+	var location string
 	err := chromedp.Run(*ctx, chromedp.Tasks{
 		chromedp.Navigate(url),
 		chromedp.WaitVisible("body > div.foot"),
@@ -49,11 +55,13 @@ func loginTasks(ctx *context.Context) error {
 		chromedp.Sleep(time.Second),
 		chromedp.Click("#loginForm > table.logintable > tbody > tr:nth-child(6) > td > input", chromedp.NodeVisible),
 		chromedp.Sleep(time.Second),
-		chromedp.Click("#menu_panel > ul > li.expand > ul > div > li:nth-child(3) > a"),
-		chromedp.Sleep(time.Second),
+		chromedp.Location(&location),
 	})
 	if err != nil {
 		return err
+	}
+	if location != "http://jw.gzgs.edu.cn/eams/home.action" {
+		return errors.New("wrong username or password")
 	}
 	return nil
 }
@@ -61,6 +69,8 @@ func loginTasks(ctx *context.Context) error {
 func getSemesterList(ctx *context.Context) ([]Semester, error) {
 	var nodes []*cdp.Node
 	err := chromedp.Run(*ctx, chromedp.Tasks{
+		chromedp.Click("#menu_panel > ul > li.expand > ul > div > li:nth-child(3) > a"),
+		chromedp.Sleep(time.Second),
 		chromedp.Click(".calendar-text-state-default", chromedp.ByQuery),
 		chromedp.Nodes(".calendar-bar-td-blankBorder", &nodes, chromedp.ByQueryAll),
 	})
@@ -114,7 +124,7 @@ func selectSemester(ctx *context.Context, semesterId string) error {
 func setWeekNum(ctx *context.Context, weekNum int) error {
 	err := chromedp.Run(*ctx, chromedp.Tasks{
 		chromedp.SetValue("#startWeek", strconv.Itoa(weekNum), chromedp.ByID),
-		chromedp.Sleep(time.Second),
+		chromedp.Sleep(time.Second / 2),
 	})
 	if err != nil {
 		return err
@@ -181,13 +191,13 @@ func getRawCourseInfo(ctx *context.Context) ([]RawCourseInfo, error) {
 	return rawCourseInfoList, nil
 }
 
-func Crawler(url string, account string, password string) {
+func Crawler(url string, account string, password string) ([]CourseInfo, error) {
 	ctx := initCrawler()
 	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	ctx, _ = chromedp.NewContext(ctx)
 
-	err := loginTasks(&ctx)
+	err := loginTasks(&ctx, url, account, password)
 	if err != nil {
 		panic(err)
 	}
@@ -197,7 +207,7 @@ func Crawler(url string, account string, password string) {
 		panic(err)
 	}
 
-	err = selectSemester(&ctx, semesterList[6].semesterId1)
+	err = selectSemester(&ctx, semesterList[6].semesterId2)
 	if err != nil {
 		panic(err)
 	}
@@ -207,9 +217,18 @@ func Crawler(url string, account string, password string) {
 		panic(err)
 	}
 
-	fmt.Println(courseInfoRawList)
+	return Parser(courseInfoRawList), nil
 }
 
-func main() {
-	Crawler(url, account, password)
-}
+//func main() {
+//	var (
+//		url      = "http://jw.gzgs.edu.cn/eams/login.action"
+//		account  string
+//		password string
+//	)
+//	_, err := fmt.Scanf("%s%s", &account, &password)
+//	if err != nil {
+//		return
+//	}
+//	Crawler(url, account, password)
+//}
