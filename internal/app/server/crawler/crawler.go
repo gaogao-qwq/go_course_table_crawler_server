@@ -9,6 +9,8 @@ import (
 	"time"
 )
 
+var AuthorizationError = errors.New("wrong username or password")
+
 type CourseInfo struct {
 	IsEmpty       bool   `json:"isEmpty"`
 	CourseId      string `json:"courseId"`
@@ -61,7 +63,7 @@ func loginTasks(ctx *context.Context, url string, account string, password strin
 		return err
 	}
 	if location != "http://jw.gzgs.edu.cn/eams/home.action" {
-		return errors.New("wrong username or password")
+		return AuthorizationError
 	}
 	return nil
 }
@@ -199,22 +201,22 @@ func Crawler(url string, account string, password string) ([]CourseInfo, error) 
 
 	err := loginTasks(&ctx, url, account, password)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	semesterList, err := getSemesterList(&ctx)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	err = selectSemester(&ctx, semesterList[6].semesterId2)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	courseInfoRawList, err := getRawCourseInfo(&ctx)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	return Parser(courseInfoRawList), nil
