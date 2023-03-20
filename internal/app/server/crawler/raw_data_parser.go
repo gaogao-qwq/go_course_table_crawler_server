@@ -12,30 +12,30 @@ import (
 func Parser(rawCourseInfoList []RawCourseInfo) []CourseInfo {
 	var courseTable []CourseInfo
 	for _, info := range rawCourseInfoList {
-		id, err := strconv.Atoi(info.id[2:strings.IndexByte(info.id, '_')])
+		id, err := strconv.Atoi(info.Id[2:strings.IndexByte(info.Id, '_')])
 		if err != nil {
 			id = 0
 		}
 
-		courseId := info.title[strings.IndexByte(info.title, '[')+1 : strings.IndexByte(info.title, ']')]
-		courseName := info.title[:strings.IndexByte(info.title, ';')]
+		courseId := info.Title[strings.IndexByte(info.Title, '[')+1 : strings.IndexByte(info.Title, ']')]
+		courseName := info.Title[:strings.IndexByte(info.Title, ';')]
 		locationName := func() string {
-			if strings.LastIndexByte(info.title, ',') == -1 {
+			if strings.LastIndexByte(info.Title, ',') == -1 {
 				return ""
 			}
-			return info.title[strings.LastIndexByte(info.title, ',')+1 : strings.LastIndexByte(info.title, ')')]
+			return info.Title[strings.LastIndexByte(info.Title, ',')+1 : strings.LastIndexByte(info.Title, ')')]
 		}()
 		sectionBegin := id - (id/12)*12 + 1
-		sectionLength := info.rowspan
+		sectionLength := info.Rowspan
 		weekNum := func() int {
-			if strings.LastIndexByte(info.title, ',') == -1 {
-				tmp, err := strconv.Atoi(info.title[strings.LastIndexByte(info.title, ';')+2 : strings.LastIndexByte(info.title, ')')])
+			if strings.LastIndexByte(info.Title, ',') == -1 {
+				tmp, err := strconv.Atoi(info.Title[strings.LastIndexByte(info.Title, ';')+2 : strings.LastIndexByte(info.Title, ')')])
 				if err != nil {
 					return -1
 				}
 				return tmp
 			}
-			tmp, err := strconv.Atoi(info.title[strings.LastIndexByte(info.title, ';')+2 : strings.LastIndexByte(info.title, ',')])
+			tmp, err := strconv.Atoi(info.Title[strings.LastIndexByte(info.Title, ';')+2 : strings.LastIndexByte(info.Title, ',')])
 			if err != nil {
 				return -1
 			}

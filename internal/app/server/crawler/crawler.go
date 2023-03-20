@@ -23,16 +23,16 @@ type CourseInfo struct {
 }
 
 type Semester struct {
-	value       string
-	index       string
-	semesterId1 string
-	semesterId2 string
+	Value       string
+	Index       string
+	SemesterId1 string
+	SemesterId2 string
 }
 
 type RawCourseInfo struct {
-	id      string
-	rowspan int
-	title   string
+	Id      string
+	Rowspan int
+	Title   string
 }
 
 func initCrawler() context.Context {
@@ -86,10 +86,10 @@ func getSemesterList(ctx *context.Context) ([]Semester, error) {
 			break
 		}
 		semesterList = append(semesterList, Semester{
-			value:       node.Children[0].NodeValue,
-			index:       node.Attributes[3],
-			semesterId1: "",
-			semesterId2: "",
+			Value:       node.Children[0].NodeValue,
+			Index:       node.Attributes[3],
+			SemesterId1: "",
+			SemesterId2: "",
 		})
 	}
 
@@ -97,12 +97,12 @@ func getSemesterList(ctx *context.Context) ([]Semester, error) {
 		var semesterIdNode1 []*cdp.Node
 		var semesterIdNode2 []*cdp.Node
 		err = chromedp.Run(*ctx, chromedp.Tasks{
-			chromedp.Click(".calendar-bar-td-blankBorder[index=\""+semester.index+"\"]", chromedp.ByQuery),
+			chromedp.Click(".calendar-bar-td-blankBorder[index=\""+semester.Index+"\"]", chromedp.ByQuery),
 			chromedp.Nodes("#semesterCalendar_termTb > tbody > tr:nth-child(1) > td", &semesterIdNode1, chromedp.ByQuery),
 			chromedp.Nodes("#semesterCalendar_termTb > tbody > tr:nth-child(2) > td", &semesterIdNode2, chromedp.ByQuery),
 		})
-		semesterList[i].semesterId1 = semesterIdNode1[0].Attributes[3]
-		semesterList[i].semesterId2 = semesterIdNode2[0].Attributes[3]
+		semesterList[i].SemesterId1 = semesterIdNode1[0].Attributes[3]
+		semesterList[i].SemesterId2 = semesterIdNode2[0].Attributes[3]
 		if err != nil {
 			return nil, err
 		}
@@ -182,9 +182,9 @@ func getRawCourseInfo(ctx *context.Context) ([]RawCourseInfo, error) {
 				}
 
 				rawCourseInfoList = append(rawCourseInfoList, RawCourseInfo{
-					id:      id,
-					rowspan: rowspan,
-					title:   title,
+					Id:      id,
+					Rowspan: rowspan,
+					Title:   title,
 				})
 			}
 		}
@@ -209,7 +209,7 @@ func Crawler(url string, account string, password string) ([]CourseInfo, error) 
 		return nil, err
 	}
 
-	err = selectSemester(&ctx, semesterList[6].semesterId2)
+	err = selectSemester(&ctx, semesterList[6].SemesterId2)
 	if err != nil {
 		return nil, err
 	}
@@ -221,16 +221,3 @@ func Crawler(url string, account string, password string) ([]CourseInfo, error) 
 
 	return Parser(courseInfoRawList), nil
 }
-
-//func main() {
-//	var (
-//		url      = "http://jw.gzgs.edu.cn/eams/login.action"
-//		account  string
-//		password string
-//	)
-//	_, err := fmt.Scanf("%s%s", &account, &password)
-//	if err != nil {
-//		return
-//	}
-//	Crawler(url, account, password)
-//}
