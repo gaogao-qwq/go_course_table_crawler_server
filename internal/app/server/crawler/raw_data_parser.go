@@ -9,8 +9,8 @@ import (
 // 毛泽东思想和中国特色社会主义理论体系概论[110010021.35] (刘于亮);(6,教I-D401(D-M))
 // 大学体育Ⅳ[B340007.57] (陈晓燕);(4)
 
-func Parser(rawCourseInfoList []RawCourseInfo) []CourseInfo {
-	var courseTable []CourseInfo
+func Parser(rawCourseInfoList []RawCourseInfo) (courseInfo []CourseInfo) {
+
 	for _, info := range rawCourseInfoList {
 		id, err := strconv.Atoi(info.Id[2:strings.IndexByte(info.Id, '_')])
 		if err != nil {
@@ -43,7 +43,7 @@ func Parser(rawCourseInfoList []RawCourseInfo) []CourseInfo {
 		}()
 		dateNum := id/12 + 1
 
-		courseTable = append(courseTable, CourseInfo{
+		courseInfo = append(courseInfo, CourseInfo{
 			IsEmpty:       false,
 			CourseId:      courseId,
 			CourseName:    courseName,
@@ -54,7 +54,8 @@ func Parser(rawCourseInfoList []RawCourseInfo) []CourseInfo {
 			DateNum:       dateNum,
 		})
 	}
-	return courseTable
+
+	return
 }
 
 //func main() {
