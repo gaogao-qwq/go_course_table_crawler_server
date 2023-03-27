@@ -26,6 +26,7 @@ func (c CourseTableCrawler) loginTasks() (err error) {
 		chromedp.Click("#loginForm > table.logintable > tbody > tr:nth-child(6) > td > input", chromedp.NodeVisible),
 		chromedp.Sleep(time.Second),
 		chromedp.Location(&location),
+		chromedp.Click("#menu_panel > ul > li.expand > ul > div > li:nth-child(3) > a"),
 	})
 	if err != nil {
 		return
@@ -39,7 +40,6 @@ func (c CourseTableCrawler) loginTasks() (err error) {
 func (c CourseTableCrawler) getSemesterList() (semesterList []Semester, err error) {
 	var nodes []*cdp.Node
 	err = chromedp.Run(c.ctx, chromedp.Tasks{
-		chromedp.Click("#menu_panel > ul > li.expand > ul > div > li:nth-child(3) > a"),
 		chromedp.Sleep(time.Second),
 		chromedp.Click(".calendar-text-state-default", chromedp.ByQuery),
 		chromedp.Nodes(".calendar-bar-td-blankBorder", &nodes, chromedp.ByQueryAll),
