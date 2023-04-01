@@ -48,7 +48,7 @@ func CourseTableHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("username:", username, "\npassword", password)
+	fmt.Println("username:", username, "\npassword:", password, "\nsemesterId:", semesterId)
 
 	w.WriteHeader(http.StatusOK)
 	courseTable, err := crawler.GetCourseTable("http://jw.gzgs.edu.cn/eams/login.action", username, password, semesterId)

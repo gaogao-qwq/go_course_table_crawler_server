@@ -65,17 +65,17 @@ func GetCourseTable(url string, account string, password string, semesterId stri
 	crawler.ctx, _ = chromedp.NewContext(crawler.ctx)
 	err = crawler.loginTasks()
 	if err != nil {
-		return
+		return courseTable, err
 	}
 
 	err = crawler.selectSemester(semesterId)
 	if err != nil {
-		return
+		return courseTable, err
 	}
 
 	courseTable, err = crawler.getCourseTable()
 	if err != nil {
-		return
+		return courseTable, err
 	}
 	return
 }
