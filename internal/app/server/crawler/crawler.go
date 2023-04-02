@@ -140,7 +140,7 @@ func (c CourseTableCrawler) getCourseTable() (courseTable CourseTable, err error
 
 	row, col, weekNum, err := c.getCourseTableSize()
 	if err != nil {
-		return
+		return courseTable, err
 	}
 	courseTable.Row = row
 	courseTable.Col = col
@@ -149,7 +149,7 @@ func (c CourseTableCrawler) getCourseTable() (courseTable CourseTable, err error
 	for week := 1; week <= weekNum; week += 1 {
 		err = c.setWeekNum(week)
 		if err != nil {
-			return
+			return courseTable, err
 		}
 		err = chromedp.Run(c.ctx, chromedp.Tasks{
 			chromedp.Nodes(
@@ -160,7 +160,7 @@ func (c CourseTableCrawler) getCourseTable() (courseTable CourseTable, err error
 			chromedp.Nodes("#manualArrangeCourseTable > tbody", &tableBodyNode, chromedp.ByQuery),
 		})
 		if err != nil {
-			return
+			return courseTable, err
 		}
 
 		for nthTR := int64(1); nthTR <= tableBodyNode[0].ChildNodeCount; nthTR += 1 {
@@ -173,7 +173,7 @@ func (c CourseTableCrawler) getCourseTable() (courseTable CourseTable, err error
 					),
 				})
 				if err != nil {
-					return
+					return courseTable, err
 				}
 
 				title, isExist := placeholderNode[0].Attribute("title")
@@ -197,5 +197,5 @@ func (c CourseTableCrawler) getCourseTable() (courseTable CourseTable, err error
 	}
 
 	courseTable.Data = Parser(rawCourseInfoList)
-	return
+	return courseTable, nil
 }
