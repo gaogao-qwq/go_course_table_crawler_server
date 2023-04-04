@@ -1,2 +1,4 @@
-/SSL/
+/SSL
 /.idea
+
+./configs/url.json
