@@ -9,10 +9,10 @@ func (e AuthorizationError) Error() string {
 }
 
 type CourseTable struct {
-	Row  int          `json:"row"`
-	Col  int          `json:"col"`
-	Week int          `json:"week"`
-	Data []CourseInfo `json:"data"`
+	Row  int            `json:"row"`
+	Col  int            `json:"col"`
+	Week int            `json:"week"`
+	Data [][]CourseInfo `json:"data"`
 }
 
 type CourseInfo struct {

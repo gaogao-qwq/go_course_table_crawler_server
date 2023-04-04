@@ -43,7 +43,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("username:", username, "\npassword", password)
 
-	err := crawler.Authorizer("http://jw.gzgs.edu.cn/eams/login.action", username, password)
+	err := crawler.Authorizer(username, password)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		return

@@ -2,6 +2,7 @@ package crawler
 
 import (
 	"context"
+	"course_table_server/configs"
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/chromedp"
 	"strconv"
@@ -10,7 +11,6 @@ import (
 
 type CourseTableCrawler struct {
 	ctx      context.Context
-	url      string
 	account  string
 	password string
 }
@@ -18,7 +18,7 @@ type CourseTableCrawler struct {
 func (c CourseTableCrawler) loginTasks() (err error) {
 	var location string
 	err = chromedp.Run(c.ctx, chromedp.Tasks{
-		chromedp.Navigate(c.url),
+		chromedp.Navigate(configs.URL.LoginUrl),
 		chromedp.WaitVisible("body > div.foot"),
 		chromedp.SendKeys("#username", c.account, chromedp.ByID),
 		chromedp.SendKeys("#password", c.password, chromedp.ByID),
@@ -31,7 +31,7 @@ func (c CourseTableCrawler) loginTasks() (err error) {
 	if err != nil {
 		return
 	}
-	if location != "http://jw.gzgs.edu.cn/eams/home.action" {
+	if location != configs.URL.HomeUrl {
 		return AuthorizationError{}
 	}
 	return
@@ -82,7 +82,7 @@ func (c CourseTableCrawler) selectSemester(semesterId string) (err error) {
 	err = chromedp.Run(c.ctx, chromedp.Tasks{
 		chromedp.SetValue("#semesterCalendar_target", semesterId, chromedp.ByID),
 		chromedp.Click("#courseTableForm > div:nth-child(2) > input[type=submit]:nth-child(9)", chromedp.ByQuery),
-		chromedp.Sleep(time.Second),
+		chromedp.Sleep(2 * time.Second),
 	})
 	if err != nil {
 		return
@@ -91,9 +91,16 @@ func (c CourseTableCrawler) selectSemester(semesterId string) (err error) {
 }
 
 func (c CourseTableCrawler) setWeekNum(weekNum int) (err error) {
+	var placeholderNode []*cdp.Node
 	err = chromedp.Run(c.ctx, chromedp.Tasks{
 		chromedp.SetValue("#startWeek", strconv.Itoa(weekNum), chromedp.ByID),
-		chromedp.Sleep(time.Second / 2),
+		chromedp.Nodes(
+			"#manualArrangeCourseTable > tbody > tr:nth-child(1) > td:nth-child(1)",
+			&placeholderNode,
+			chromedp.ByQuery,
+		),
+		chromedp.Sleep(time.Second),
+		chromedp.WaitVisible("#manualArrangeCourseTable > tbody > tr:nth-child(1) > td:nth-child(1)", chromedp.ByQuery),
 	})
 	if err != nil {
 		return

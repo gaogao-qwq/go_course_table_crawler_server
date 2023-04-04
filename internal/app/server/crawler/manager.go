@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func NewCourseTableCrawler(url string, account string, password string) CourseTableCrawler {
+func NewCourseTableCrawler(account string, password string) CourseTableCrawler {
 	ctx, _ := chromedp.NewExecAllocator(
 		context.Background(),
 		append(
@@ -17,14 +17,13 @@ func NewCourseTableCrawler(url string, account string, password string) CourseTa
 	)
 	return CourseTableCrawler{
 		ctx:      ctx,
-		url:      url,
 		account:  account,
 		password: password,
 	}
 }
 
-func Authorizer(url string, account string, password string) (err error) {
-	crawler := NewCourseTableCrawler(url, account, password)
+func Authorizer(account string, password string) (err error) {
+	crawler := NewCourseTableCrawler(account, password)
 	var cancel context.CancelFunc
 	crawler.ctx, cancel = context.WithTimeout(crawler.ctx, 60*time.Second)
 	defer cancel()
@@ -37,8 +36,8 @@ func Authorizer(url string, account string, password string) (err error) {
 	return
 }
 
-func GetSemesterList(url string, account string, password string) (semesterList []Semester, err error) {
-	crawler := NewCourseTableCrawler(url, account, password)
+func GetSemesterList(account string, password string) (semesterList []Semester, err error) {
+	crawler := NewCourseTableCrawler(account, password)
 	var cancel context.CancelFunc
 	crawler.ctx, cancel = context.WithTimeout(crawler.ctx, 60*time.Second)
 	defer cancel()
@@ -56,8 +55,8 @@ func GetSemesterList(url string, account string, password string) (semesterList 
 	return
 }
 
-func GetCourseTable(url string, account string, password string, semesterId string) (courseTable CourseTable, err error) {
-	crawler := NewCourseTableCrawler(url, account, password)
+func GetCourseTable(account string, password string, semesterId string) (courseTable CourseTable, err error) {
+	crawler := NewCourseTableCrawler(account, password)
 	var cancel context.CancelFunc
 	crawler.ctx, cancel = context.WithTimeout(crawler.ctx, 60*time.Second)
 	defer cancel()

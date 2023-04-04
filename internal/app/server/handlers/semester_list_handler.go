@@ -43,7 +43,7 @@ func SemesterListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println("username:", username, "\npassword", password)
-	semesterList, err := crawler.GetSemesterList("http://jw.gzgs.edu.cn/eams/login.action", username, password)
+	semesterList, err := crawler.GetSemesterList(username, password)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		panic(err)
