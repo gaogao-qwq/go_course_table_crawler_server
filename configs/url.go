@@ -13,7 +13,7 @@ type Url struct {
 var URL Url
 
 func init() {
-	f, err := os.ReadFile("configs/url.json")
+	f, err := os.ReadFile("configs/jsons/url.json")
 	if err != nil {
 		panic(err)
 		return
