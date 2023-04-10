@@ -45,6 +45,7 @@ func Parser(rawCourseInfoList []RawCourseInfo) (courseInfo [][]CourseInfo) {
 			courseName := title[:strings.IndexByte(title, ';')]
 			// courseId 只会且必会出现在 courseName 中被中括号括起来的位置
 			courseId := courseName[strings.IndexByte(courseName, '[')+1 : strings.IndexByte(courseName, ']')]
+			courseName = courseName[:strings.IndexByte(courseName, '[')]
 
 			// 课程上课周、上课教室（可能不存在）在分号右侧，截取为 courseDetail
 			courseDetail := title[strings.IndexByte(title, ';')+1:]
