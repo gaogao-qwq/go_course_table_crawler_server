@@ -25,7 +25,7 @@ func NewCourseTableCrawler(account string, password string) CourseTableCrawler {
 func Authorizer(account string, password string) (err error) {
 	crawler := NewCourseTableCrawler(account, password)
 	var cancel context.CancelFunc
-	crawler.ctx, cancel = context.WithTimeout(crawler.ctx, 60*time.Second)
+	crawler.ctx, cancel = context.WithTimeout(crawler.ctx, 10*time.Second)
 	defer cancel()
 	crawler.ctx, _ = chromedp.NewContext(crawler.ctx)
 
@@ -39,7 +39,7 @@ func Authorizer(account string, password string) (err error) {
 func GetSemesterList(account string, password string) (semesterList []Semester, err error) {
 	crawler := NewCourseTableCrawler(account, password)
 	var cancel context.CancelFunc
-	crawler.ctx, cancel = context.WithTimeout(crawler.ctx, 60*time.Second)
+	crawler.ctx, cancel = context.WithTimeout(crawler.ctx, 20*time.Second)
 	defer cancel()
 
 	crawler.ctx, _ = chromedp.NewContext(crawler.ctx)
