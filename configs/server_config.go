@@ -15,22 +15,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-package main
+package configs
 
 import (
-	"course_table_server/configs"
-	"course_table_server/internal/app/server/handlers"
-	"fmt"
-	"log"
-	"net/http"
+	"encoding/json"
+	"os"
 )
 
-func main() {
-	mux := http.NewServeMux()
+type ServerConfig struct {
+	Ip   string `json:"ip"`
+	Port string `json:"port"`
+}
 
-	mux.HandleFunc("/login", handlers.LoginHandler)
-	mux.HandleFunc("/semester-list", handlers.SemesterListHandler)
-	mux.HandleFunc("/course-table", handlers.CourseTableHandler)
-	fmt.Println("Listen and serve on:", configs.SConfig.Ip+":"+configs.SConfig.Port)
-	log.Fatal(http.ListenAndServe(configs.SConfig.Ip+":"+configs.SConfig.Port, mux))
+var SConfig ServerConfig
+
+func ReadServerConfig() {
+	f, err := os.ReadFile("configs/jsons/server_config.json")
+	if err != nil {
+		panic(err)
+		return
+	}
+
+	err = json.Unmarshal(f, &SConfig)
+	if err != nil {
+		panic(err)
+		return
+	}
 }

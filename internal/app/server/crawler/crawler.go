@@ -35,7 +35,7 @@ type CourseTableCrawler struct {
 func (c CourseTableCrawler) loginTasks() (err error) {
 	var location string
 	err = chromedp.Run(c.ctx, chromedp.Tasks{
-		chromedp.Navigate(configs.URL.LoginUrl),
+		chromedp.Navigate(configs.CConfig.LoginUrl),
 		chromedp.WaitVisible("body > div.foot"),
 		chromedp.SendKeys("#username", c.account, chromedp.ByID),
 		chromedp.SendKeys("#password", c.password, chromedp.ByID),
@@ -48,7 +48,7 @@ func (c CourseTableCrawler) loginTasks() (err error) {
 	if err != nil {
 		return
 	}
-	if location != configs.URL.HomeUrl {
+	if location != configs.CConfig.HomeUrl {
 		return AuthorizationError{}
 	}
 	return
