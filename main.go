@@ -18,7 +18,7 @@
 package main
 
 import (
-	"course_table_server/configs"
+	"course_table_server/internal/app/server/configs"
 	"course_table_server/internal/app/server/handlers"
 	"fmt"
 	"log"

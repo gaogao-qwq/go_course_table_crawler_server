@@ -22,21 +22,21 @@ import (
 	"os"
 )
 
-type ServerConfig struct {
-	Ip   string `json:"ip"`
-	Port string `json:"port"`
+type CrawlerConfig struct {
+	LoginUrl string `json:"loginUrl"`
+	HomeUrl  string `json:"homeUrl"`
 }
 
-var SConfig ServerConfig
+var CConfig CrawlerConfig
 
-func ReadServerConfig() {
-	f, err := os.ReadFile("configs/jsons/server_config.json")
+func ReadCrawlerConfig() {
+	f, err := os.ReadFile("configs/crawler_config.json")
 	if err != nil {
 		panic(err)
 		return
 	}
 
-	err = json.Unmarshal(f, &SConfig)
+	err = json.Unmarshal(f, &CConfig)
 	if err != nil {
 		panic(err)
 		return

@@ -19,7 +19,7 @@ package crawler
 
 import (
 	"context"
-	"course_table_server/configs"
+	"course_table_server/internal/app/server/configs"
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/chromedp"
 	"strconv"
