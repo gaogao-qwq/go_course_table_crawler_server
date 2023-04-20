@@ -31,6 +31,6 @@ func main() {
 	mux.HandleFunc("/login", handlers.LoginHandler)
 	mux.HandleFunc("/semester-list", handlers.SemesterListHandler)
 	mux.HandleFunc("/course-table", handlers.CourseTableHandler)
-	fmt.Println("Listen and serve on:", configs.SConfig.Ip+":"+configs.SConfig.Port)
-	log.Fatal(http.ListenAndServe(configs.SConfig.Ip+":"+configs.SConfig.Port, mux))
+	fmt.Println("Listen and serve on:", configs.Address+":"+configs.Port)
+	log.Fatal(http.ListenAndServe(configs.Address+":"+configs.Port, mux))
 }
