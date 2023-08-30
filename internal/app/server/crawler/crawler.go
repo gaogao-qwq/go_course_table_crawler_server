@@ -19,7 +19,7 @@ package crawler
 
 import (
 	"context"
-	"course_table_server/internal/app/server/configs"
+	"course_table_server/internal/app/server/config"
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/chromedp"
 	"strconv"
@@ -35,7 +35,7 @@ type CourseTableCrawler struct {
 func (c CourseTableCrawler) loginTasks() (err error) {
 	var location string
 	err = chromedp.Run(c.ctx, chromedp.Tasks{
-		chromedp.Navigate(configs.LoginUrl),
+		chromedp.Navigate(config.LoginUrl),
 		chromedp.WaitVisible("body > div.foot"),
 		chromedp.SendKeys("#username", c.account, chromedp.ByID),
 		chromedp.SendKeys("#password", c.password, chromedp.ByID),
@@ -43,12 +43,11 @@ func (c CourseTableCrawler) loginTasks() (err error) {
 		chromedp.Click("#loginForm > table.logintable > tbody > tr:nth-child(6) > td > input", chromedp.NodeVisible),
 		chromedp.Sleep(time.Second),
 		chromedp.Location(&location),
-		chromedp.Click("#menu_panel > ul > li.expand > ul > div > li:nth-child(3) > a"),
 	})
 	if err != nil {
 		return
 	}
-	if location != configs.HomeUrl {
+	if location != config.HomeUrl {
 		return AuthorizationError{}
 	}
 	return
@@ -58,6 +57,7 @@ func (c CourseTableCrawler) getSemesterList() (semesterList []Semester, err erro
 	var nodes []*cdp.Node
 	err = chromedp.Run(c.ctx, chromedp.Tasks{
 		chromedp.Sleep(time.Second),
+		chromedp.Click("#menu_panel > ul > li.expand > ul > div > li:nth-child(3) > a"),
 		chromedp.Click(".calendar-text-state-default", chromedp.ByQuery),
 		chromedp.Nodes(".calendar-bar-td-blankBorder", &nodes, chromedp.ByQueryAll),
 	})
@@ -80,16 +80,17 @@ func (c CourseTableCrawler) getSemesterList() (semesterList []Semester, err erro
 	for i, semester := range semesterList {
 		var semesterIdNode1 []*cdp.Node
 		var semesterIdNode2 []*cdp.Node
-		err = chromedp.Run(c.ctx, chromedp.Tasks{
+		_ = chromedp.Run(c.ctx, chromedp.Tasks{
 			chromedp.Click(".calendar-bar-td-blankBorder[index=\""+semester.Index+"\"]", chromedp.ByQuery),
 			chromedp.Nodes("#semesterCalendar_termTb > tbody > tr:nth-child(1) > td", &semesterIdNode1, chromedp.ByQuery),
 			chromedp.Nodes("#semesterCalendar_termTb > tbody > tr:nth-child(2) > td", &semesterIdNode2, chromedp.ByQuery),
 			chromedp.Sleep(time.Second / 2),
 		})
-		semesterList[i].SemesterId1 = semesterIdNode1[0].Attributes[3]
-		semesterList[i].SemesterId2 = semesterIdNode2[0].Attributes[3]
-		if err != nil {
-			return
+		if len(semesterIdNode1) > 0 {
+			semesterList[i].SemesterId1 = semesterIdNode1[0].Attributes[3]
+		}
+		if len(semesterIdNode2) > 0 {
+			semesterList[i].SemesterId2 = semesterIdNode2[0].Attributes[3]
 		}
 	}
 
@@ -98,6 +99,7 @@ func (c CourseTableCrawler) getSemesterList() (semesterList []Semester, err erro
 
 func (c CourseTableCrawler) selectSemester(semesterId string) (err error) {
 	err = chromedp.Run(c.ctx, chromedp.Tasks{
+		chromedp.Click("#menu_panel > ul > li.expand > ul > div > li:nth-child(3) > a"),
 		chromedp.SetValue("#semesterCalendar_target", semesterId, chromedp.ByQuery),
 		chromedp.Click("#courseTableForm > div:nth-child(2) > input[type=submit]:nth-child(9)", chromedp.ByQuery),
 		chromedp.Sleep(2 * time.Second),
