@@ -20,18 +20,13 @@ package main
 import (
 	"course_table_server/internal/app/server/config"
 	"course_table_server/internal/app/server/handler"
-	"course_table_server/internal/app/server/middleware"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
 )
 
 func main() {
 	e := gin.Default()
-	e.Use(middleware.HandlerLoggerMiddleware)
-	e.Use(middleware.ErrorLoggerMiddleware)
 	e.GET("/v1/semester-list", handler.SemesterListHandler)
 	e.GET("/v1/course-table", handler.CourseTableHandler)
-	fmt.Println("Opening service on:", config.Address, ":", config.Port, "...")
 	log.Fatal(e.Run(config.Address + ":" + config.Port))
 }
