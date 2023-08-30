@@ -15,23 +15,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-package main
+package handler
 
 import (
-	"course_table_server/internal/app/server/config"
-	"course_table_server/internal/app/server/handler"
-	"course_table_server/internal/app/server/middleware"
-	"fmt"
+	"course_table_server/internal/app/server/crawler"
 	"github.com/gin-gonic/gin"
-	"log"
+	"net/http"
 )
 
-func main() {
-	e := gin.Default()
-	e.Use(middleware.HandlerLoggerMiddleware)
-	e.Use(middleware.ErrorLoggerMiddleware)
-	e.GET("/v1/semester-list", handler.SemesterListHandler)
-	e.GET("/v1/course-table", handler.CourseTableHandler)
-	fmt.Println("Opening service on:", config.Address, ":", config.Port, "...")
-	log.Fatal(e.Run(config.Address + ":" + config.Port))
+func CourseTableHandler(c *gin.Context) {
+	c.Header("Content-Type", "application/json")
+	username, password, _ := c.Request.BasicAuth()
+	semesterId := c.GetHeader("semesterId")
+	if semesterId == "" {
+		c.AbortWithStatus(http.StatusNotAcceptable)
+		return
+	}
+	courseTable, err := crawler.GetCourseTable(username, password, semesterId)
+	if err != nil {
+		_ = c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	c.JSON(http.StatusOK, courseTable)
 }

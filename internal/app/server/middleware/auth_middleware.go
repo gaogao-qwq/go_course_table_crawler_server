@@ -15,23 +15,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-package main
+package middleware
 
 import (
-	"course_table_server/internal/app/server/config"
-	"course_table_server/internal/app/server/handler"
-	"course_table_server/internal/app/server/middleware"
-	"fmt"
+	"course_table_server/internal/app/server/crawler"
 	"github.com/gin-gonic/gin"
-	"log"
+	"net/http"
 )
 
-func main() {
-	e := gin.Default()
-	e.Use(middleware.HandlerLoggerMiddleware)
-	e.Use(middleware.ErrorLoggerMiddleware)
-	e.GET("/v1/semester-list", handler.SemesterListHandler)
-	e.GET("/v1/course-table", handler.CourseTableHandler)
-	fmt.Println("Opening service on:", config.Address, ":", config.Port, "...")
-	log.Fatal(e.Run(config.Address + ":" + config.Port))
+func AuthMiddleware(c *gin.Context) {
+	username, password, ok := c.Request.BasicAuth()
+	if !ok {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+	err := crawler.Authorizer(username, password)
+	if err != nil {
+		_ = c.AbortWithError(http.StatusUnauthorized, err)
+		return
+	}
+	c.Next()
 }

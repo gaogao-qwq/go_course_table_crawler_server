@@ -15,23 +15,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-package main
+package middleware
 
 import (
-	"course_table_server/internal/app/server/config"
-	"course_table_server/internal/app/server/handler"
-	"course_table_server/internal/app/server/middleware"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
+	"time"
 )
 
-func main() {
-	e := gin.Default()
-	e.Use(middleware.HandlerLoggerMiddleware)
-	e.Use(middleware.ErrorLoggerMiddleware)
-	e.GET("/v1/semester-list", handler.SemesterListHandler)
-	e.GET("/v1/course-table", handler.CourseTableHandler)
-	fmt.Println("Opening service on:", config.Address, ":", config.Port, "...")
-	log.Fatal(e.Run(config.Address + ":" + config.Port))
+func HandlerLoggerMiddleware(c *gin.Context) {
+	start := time.Now()
+	c.Next()
+	latency := time.Since(start).Milliseconds()
+	dateTime := time.Now().Format("2006-01-02 15:04:05")
+	log.Printf("{%s} [%s]->%s %s %dms \n", dateTime, c.Request.Method, c.Request.URL.Path, c.ClientIP(), latency)
 }
