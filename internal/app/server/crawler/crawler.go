@@ -82,10 +82,11 @@ func (c CourseTableCrawler) getSemesterList() (semesterList []Semester, err erro
 		var semesterIdNode2 []*cdp.Node
 		_ = chromedp.Run(c.ctx, chromedp.Tasks{
 			chromedp.Click(".calendar-bar-td-blankBorder[index=\""+semester.Index+"\"]", chromedp.ByQuery),
-			chromedp.Nodes("#semesterCalendar_termTb > tbody > tr:nth-child(1) > td", &semesterIdNode1, chromedp.ByQuery),
-			chromedp.Nodes("#semesterCalendar_termTb > tbody > tr:nth-child(2) > td", &semesterIdNode2, chromedp.ByQuery),
+			chromedp.Nodes("#semesterCalendar_termTb > tbody > tr:nth-child(1) > td", &semesterIdNode1, chromedp.AtLeast(0)),
+			chromedp.Nodes("#semesterCalendar_termTb > tbody > tr:nth-child(2) > td", &semesterIdNode2, chromedp.AtLeast(0)),
 			chromedp.Sleep(time.Second / 2),
 		})
+
 		if len(semesterIdNode1) > 0 {
 			semesterList[i].SemesterId1 = semesterIdNode1[0].Attributes[3]
 		}
