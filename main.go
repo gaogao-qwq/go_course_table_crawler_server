@@ -20,13 +20,14 @@ package main
 import (
 	"course_table_server/internal/app/server/config"
 	"course_table_server/internal/app/server/handler"
+	"course_table_server/internal/app/server/middleware"
 	"github.com/gin-gonic/gin"
 	"log"
 )
 
 func main() {
 	e := gin.Default()
-	e.GET("/v1/semester-list", handler.SemesterListHandler)
-	e.GET("/v1/course-table", handler.CourseTableHandler)
+	e.GET("/v1/semester-list", middleware.AuthMiddleware, handler.SemesterListHandler)
+	e.GET("/v1/course-table", middleware.AuthMiddleware, handler.CourseTableHandler)
 	log.Fatal(e.Run(config.Address + ":" + config.Port))
 }
