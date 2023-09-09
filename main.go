@@ -29,5 +29,6 @@ func main() {
 	e := gin.Default()
 	e.GET("/v1/semester-list", middleware.AuthMiddleware, handler.SemesterListHandler)
 	e.GET("/v1/course-table", middleware.AuthMiddleware, handler.CourseTableHandler)
+	e.GET("/v1/test", handler.TestHandler)
 	log.Fatal(e.Run(config.Address + ":" + config.Port))
 }
