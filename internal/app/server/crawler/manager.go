@@ -30,6 +30,7 @@ func NewCourseTableCrawler(account string, password string) CourseTableCrawler {
 			chromedp.DefaultExecAllocatorOptions[:],
 			chromedp.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36 encors/0.0.6"),
 			chromedp.Flag("headless", true),
+			chromedp.Flag("no-sandbox", true),
 		)...,
 	)
 	return CourseTableCrawler{
