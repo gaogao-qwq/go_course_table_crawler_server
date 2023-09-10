@@ -30,6 +30,6 @@ func init() {
 	flag.StringVar(&Address, "address", "0.0.0.0", "server listen address")
 	flag.StringVar(&Port, "port", "56789", "server listen port")
 	flag.StringVar(&LoginUrl, "loginurl", "http://targeturl/login", "login page url")
-	flag.StringVar(&HomeUrl, "homeurl", "http://targeturl/home.action", "home page url")
+	flag.StringVar(&HomeUrl, "homeurl", "http://targeturl/home", "home page url")
 	flag.Parse()
 }
