@@ -24,4 +24,4 @@ RUN go build -v -o /usr/bin/course_table_crawler
 
 EXPOSE 56789
 
-CMD ["/bin/sh", "-c", "/usr/bin/course_table_crawler", "-address", "$SERVER_ADDRESS", "-port", "$SERVER_PORT", "-loginurl", "$CRAWLER_LOGIN_URL", "-homeurl", "$CRAWLER_HOME_URL"]
+CMD ["/bin/sh", "-c", "/usr/bin/course_table_crawler -address $SERVER_ADDRESS -port $SERVER_PORT -loginurl $CRAWLER_LOGIN_URL -homeurl $CRAWLER_HOME_URL"]
