@@ -4,9 +4,17 @@
 
 **Change `ENV` in Dockerfile first.**
 
+1. Clone repo
+```bash
+git clone https://github.com/gaogao-qwq/go_course_table_crawler_server.git
+cd go_course_table_crawler_server
+mv .env.template .env # Configure environment variables
+```
+
+2. Build image and run with .env file
 ```bash
 docker build -t course_table_crawler_image .
-docker run --name course_table_crawler_container -p <host port>:56789 course_table_crawler_image
+docker run --name course_table_crawler_container --env-file .env -v /run/dbus:/run/dbus -p <host port>:56789 course_table_crawler_image
 ```
 
 ## Build from native
