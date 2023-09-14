@@ -2,11 +2,7 @@ FROM golang:1.20
 
 ENV GO111MODULE="on" \
     GOPROXY="https://goproxy.cn,direct" \
-    GIN_MODE="release" \
-    SERVER_ADDRESS="0.0.0.0" \
-    SERVER_PORT="56789" \
-    CRAWLER_LOGIN_URL="http://targeturl/login" \
-    CRAWLER_HOME_URL="http://targeturl/home"
+    GIN_MODE="release"
 
 # 更换国内源
 COPY ./sources.list /etc/apt/sources.list
