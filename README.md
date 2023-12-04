@@ -1,4 +1,6 @@
 # A course table crawler service implementation with go and chromedp
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fgaogao-qwq%2Fgo_course_table_crawler_server.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fgaogao-qwq%2Fgo_course_table_crawler_server?ref=badge_shield)
+
 
 ## Build from docker (Suggest)
 
@@ -26,3 +28,6 @@ go mod download
 go run main.go -address <server listen address> -port <server listen port>
                -loginurl <login page url> -homeurl <home page url>
 ```
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fgaogao-qwq%2Fgo_course_table_crawler_server.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fgaogao-qwq%2Fgo_course_table_crawler_server?ref=badge_large)
